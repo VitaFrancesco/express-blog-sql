@@ -1,52 +1,14 @@
-const postsArray = require('../posts');
+const connection = require('../data/db');
 
 function index(req, res) {
-    const queryTag = req.query.tag;
-    const queryLimit = req.query.limit;
-    const querySkip = req.query.skip;
 
-    let postsFiltered = postsArray;
+    const sql = 'SELECT * FROM `posts`';
 
-    if (req.query.tag) {
-        postsFiltered = postsFiltered.filter((el) => el.tags.includes(queryTag));
+    connection.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database query failed' });
+        res.json(results);
+    })
 
-        if (!postsFiltered) {
-            res.status(404);
-            return res.json({
-                error: "Not Found",
-                message: "Il post non è stato trovato"
-            });
-        };
-    };
-
-    if (req.query.skip) {
-        postsFiltered = postsFiltered.filter((el, i) => i >= querySkip);
-
-
-        if (!postsFiltered) {
-            res.status(404);
-            return res.json({
-                error: "Not Found",
-                message: "Il post non è stato trovato"
-            });
-        };
-    };
-
-    if (req.query.limit) {
-        postsFiltered = postsFiltered.filter((el, i) => i < queryLimit);
-
-
-        if (!postsFiltered) {
-            res.status(404);
-            return res.json({
-                error: "Not Found",
-                message: "Il post non è stato trovato"
-            });
-        };
-    };
-
-
-    res.json({ posts: postsFiltered, length: postsArray.length });
 
 };
 
