@@ -92,26 +92,13 @@ function modify(req, res) {
 };
 
 function destroy(req, res) {
-    const id = req.params.id;
-    let postId;
-    postId = postsArray.findIndex((el) => el.id === parseInt(id));
-    postsArray.splice(postId, 1);
 
+    const { id } = req.params;
 
-
-    if (!postId && postId !== 0) {
-        res.status(404);
-        return res.json({
-            error: "Not Found",
-            message: "Il post non è stato trovato"
-        });
-    };
-
-
-    console.log(postsArray);
-
-    res.status(204);
-    res.send();
+    connection.query('DELETE FROM posts WHERE id = ?', [id], (err) => {
+        if (err) return res.status(500).json({ error: 'Failed to delete post' });
+        res.sendStatus(204)
+    });
 };
 
 
