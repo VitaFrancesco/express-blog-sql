@@ -13,40 +13,32 @@ function index(req, res) {
 };
 
 function show(req, res) {
-    const key = req.params.key;
-    let post = {};
-    let currentPost = {};
-    let prev = [];
-    let next = [];
+    const { id } = req.params;
 
-    if (isNaN(parseInt(key))) {
-        post = postsArray.filter((el) => el.tags.includes(key));
-    } else {
-        const resPost = postsArray.filter((el) => el.id === parseInt(key));
-        currentPost = resPost[0];
-        const index = postsArray.findIndex((el) => (el === currentPost))
-        postsArray.forEach((element, i) => {
-            if (element !== currentPost) {
-                i > index ? next.push(element) : prev.unshift(element);
-            }
-        });
-        post = {
-            currentPost,
-            prev,
-            next
-        }
-    };
-    if (post) {
-        res.json(post);
-        console.log(post)
-    } else {
-        res.status(404);
-        return res.json({
-            error: "Not Found",
-            message: "Il post non è stato trovato"
-        });
-    };
+    const postSql = 'SELECT * FROM `posts` WHERE id = ?';
 
+    const tagSql = `
+    SELECT tags.label 
+    FROM tags 
+    JOIN post_tag 
+    ON tags.id = post_tag.tag_id 
+    WHERE post_id = ?
+    `;
+
+    connection.query(postSql, [id], (err, postResult) => {
+        if (err) return res.status(500).json({ error: 'Database query failed' });
+        if (postResult.length === 0) return res.status(404).json({ error: 'Post not found' });
+
+        const post = postResult[0];
+
+        connection.query(tagSql, [id], (err, tagResult) => {
+            if (err) return res.status(500).json({ error: 'Database query failed' });
+
+            post.tags = tagResult;
+            res.json(post);
+        })
+
+    });
 };
 
 function store(req, res) {
